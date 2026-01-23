@@ -223,3 +223,13 @@ Para problemas ou dúvidas:
 - Consulte documentação do [Kaggle API](https://www.kaggle.com/docs/api)
 - Verifique [TensorFlow Lite Guide](https://www.tensorflow.org/lite)
 
+
+
+
+
+
+
+
+
+
+
