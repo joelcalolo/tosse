@@ -6,6 +6,10 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 
 class TfliteAnalyzerService {
   Interpreter? _interpreter;
+  
+  // Parâmetro de temperatura para calibração agressiva
+  // T=5.0 torna as predições mais conservadoras, evitando certezas artificiais
+  static const double temperature = 5.0;
 
   Future<void> initialize() async {
     // Use the new v2 model with 3 classes
@@ -48,12 +52,27 @@ class TfliteAnalyzerService {
     // 6. Run Inference
     _interpreter!.run(inputExpanded, output);
 
-    // 7. Debug: Print raw output values
+    // 7. Debug: Print raw output values (antes da calibração)
     print('DEBUG - Number of classes: $numClasses');
-    print('DEBUG - Raw output: ${output[0]}');
+    print('DEBUG - Raw output (before calibration): ${output[0]}');
     print('DEBUG - Raw output values: [${output[0].map((v) => v.toStringAsFixed(4)).join(", ")}]');
 
-    // 8. Return results based on number of classes
+    // 8. Aplicar calibração agressiva com temperatura
+    // Tratamos as probabilidades do modelo como logits e aplicamos temperatura + softmax
+    final rawOutput = List<double>.from(output[0]);
+    final calibratedOutput = _applyTemperatureCalibration(rawOutput);
+    
+    // Debug: Print valores calibrados
+    print('DEBUG - Calibrated output (after temperature T=$temperature): ${calibratedOutput}');
+    print('DEBUG - Calibrated values: [${calibratedOutput.map((v) => v.toStringAsFixed(4)).join(", ")}]');
+    print('DEBUG - Sum of calibrated probabilities: ${calibratedOutput.reduce((a, b) => a + b).toStringAsFixed(4)}');
+    
+    // Substituir output[0] pelos valores calibrados
+    for (int i = 0; i < numClasses; i++) {
+      output[0][i] = calibratedOutput[i];
+    }
+
+    // 9. Return results based on number of classes
     // IMPORTANT: The order depends on how the model was trained!
     // Model v2 order: [Pneumonia, Bronquite, Normal] for 3 classes
     // Model order: [Pneumonia, Bronquite] for 2 classes
@@ -142,6 +161,43 @@ class TfliteAnalyzerService {
     }, hopSize);
 
     return spectrogram;
+  }
+
+  /// Aplica calibração agressiva usando temperatura
+  /// Trata as probabilidades do modelo como logits, divide por temperatura e recalcula softmax
+  List<double> _applyTemperatureCalibration(List<double> rawOutput) {
+    // Primeiro, convertemos probabilidades para logits (aproximação inversa de softmax)
+    // Como as probabilidades já estão normalizadas, usamos log para obter logits aproximados
+    final logits = rawOutput.map((prob) {
+      // Evita log(0) que resultaria em -infinito
+      final safeProb = prob.clamp(1e-10, 1.0);
+      return log(safeProb);
+    }).toList();
+    
+    // Aplica temperatura: divide cada logit por T
+    final scaledLogits = logits.map((logit) => logit / temperature).toList();
+    
+    // Aplica softmax manual nos logits escalados
+    return _softmax(scaledLogits);
+  }
+
+  /// Implementa softmax manual com estabilidade numérica
+  /// Subtrai o máximo antes de calcular exponenciais para evitar overflow
+  List<double> _softmax(List<double> logits) {
+    if (logits.isEmpty) return [];
+    
+    // Subtrai o máximo para estabilidade numérica
+    final maxLogit = logits.reduce((a, b) => a > b ? a : b);
+    final expValues = logits.map((x) => exp(x - maxLogit)).toList();
+    final sumExp = expValues.reduce((a, b) => a + b);
+    
+    // Evita divisão por zero
+    if (sumExp == 0.0) {
+      // Se soma for zero, retorna distribuição uniforme
+      return List.filled(logits.length, 1.0 / logits.length);
+    }
+    
+    return expValues.map((x) => x / sumExp).toList();
   }
 
   /// Normalizes the spectrogram to [0, 1] range

@@ -57,13 +57,14 @@ def find_audio_files(data_dir: Path, patient_id: str) -> list:
 
 def load_and_filter_diagnosis(csv_path: Path) -> pd.DataFrame:
     """
-    Carrega e filtra o arquivo de diagnósticos
+    Carrega e filtra o arquivo de diagnósticos incluindo TODAS as classes relevantes
+    Mapeia para 3 classes finais: Pneumonia, Bronchitis, Healthy
     
     Args:
         csv_path: Caminho para o arquivo CSV de diagnósticos
         
     Returns:
-        DataFrame filtrado apenas com Pneumonia e Bronchitis
+        DataFrame filtrado com Pneumonia, Bronchitis e Healthy (mapeados para 3 classes)
     """
     # Tenta diferentes separadores e nomes de coluna
     try:
@@ -83,15 +84,40 @@ def load_and_filter_diagnosis(csv_path: Path) -> pd.DataFrame:
     if 'Patient_ID' not in df.columns:
         df.columns = ['Patient_ID', 'Disease']
     
-    # Filtra apenas Pneumonia e Bronchitis
-    target_diseases = ['Pneumonia', 'Bronchitis', 'pneumonia', 'bronchitis']
+    # Incluir TODAS as doenças relevantes e mapear para 3 classes
+    # Classe 0: Pneumonia
+    pneumonia_diseases = ['Pneumonia', 'pneumonia', 'URTI', 'urti']
+    # Classe 1: Bronchitis (Bronquite)
+    bronchitis_diseases = ['Bronchitis', 'bronchitis', 'Bronchiolitis', 'bronchiolitis', 
+                           'COPD', 'copd', 'Asthma', 'asthma']
+    # Classe 2: Healthy (Normal)
+    normal_diseases = ['Healthy', 'healthy', 'Normal', 'normal']
+    
+    # Todas as doenças que queremos processar
+    target_diseases = pneumonia_diseases + bronchitis_diseases + normal_diseases
+    
+    # Filtrar apenas doenças relevantes
     filtered_df = df[df['Disease'].isin(target_diseases)].copy()
+    
+    # Mapear para classes finais
+    def map_to_class(disease):
+        disease_lower = str(disease).lower().strip()
+        if disease_lower in ['pneumonia', 'urti']:
+            return 'Pneumonia'
+        elif disease_lower in ['bronchitis', 'bronchiolitis', 'copd', 'asthma']:
+            return 'Bronchitis'
+        elif disease_lower in ['healthy', 'normal']:
+            return 'Healthy'
+        else:
+            return disease
+    
+    filtered_df['Disease'] = filtered_df['Disease'].apply(map_to_class)
     
     # Normaliza nomes das doenças
     filtered_df['Disease'] = filtered_df['Disease'].str.capitalize()
     
     print(f"Total de pacientes no CSV: {len(df)}")
-    print(f"Pacientes filtrados (Pneumonia/Bronchitis): {len(filtered_df)}")
+    print(f"Pacientes filtrados (relevantes): {len(filtered_df)}")
     print(f"Distribuição por doença:\n{filtered_df['Disease'].value_counts()}")
     
     return filtered_df
