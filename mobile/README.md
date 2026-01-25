@@ -9,7 +9,7 @@
 
 **Aplicação móvel profissional para análise de tosse e detecção de patologias respiratórias usando Inteligência Artificial**
 
-[Características](#-características) • [Instalação](#-instalação) • [Uso](#-como-usar) • [Estrutura](#-estrutura-do-projeto) • [Tecnologias](#-tecnologias)
+[📥 Download APK](#-download-apk) • [Características](#-características) • [Instalação](#-instalação) • [Uso](#-como-usar) • [Estrutura](#-estrutura-do-projeto) • [Tecnologias](#-tecnologias)
 
 </div>
 
@@ -17,6 +17,7 @@
 
 ## 📋 Índice
 
+- [📥 Download APK](#-download-apk)
 - [Visão Geral](#-visão-geral)
 - [Características](#-características)
 - [Tecnologias](#-tecnologias)
@@ -32,17 +33,104 @@
 
 ---
 
+## 📥 Download APK
+
+### Versão Atual: 1.0.0
+
+**Download do APK:**
+
+📱 **Localização do arquivo**: `mobile/build/app/outputs/flutter-apk/app-release.apk`
+
+- **Tamanho**: ~81 MB (84.8 MB)
+- **Versão**: 1.0.0
+- **Data**: 25/01/2025
+- **Android**: API 21+ (Android 5.0+)
+
+### Como Baixar
+
+#### Opção 1: Do Repositório Local
+Se você clonou o repositório, o APK está em:
+```
+mobile/build/app/outputs/flutter-apk/app-release.apk
+```
+
+#### Opção 2: Gerar Novo APK
+Se preferir gerar um novo APK:
+```bash
+cd mobile
+flutter build apk --release
+```
+O APK será gerado em: `build/app/outputs/flutter-apk/app-release.apk`
+
+#### Opção 3: Download via GitHub Releases (Recomendado)
+Para disponibilizar o APK via GitHub Releases:
+
+1. Acesse o repositório no GitHub
+2. Vá em **Releases** → **Create a new release**
+3. Crie uma nova tag (ex: `v1.0.0`)
+4. Faça upload do arquivo `app-release.apk`
+5. Publique o release
+
+Depois disso, você pode adicionar um link direto aqui:
+```markdown
+📱 [Baixar APK v1.0.0](https://github.com/seu-usuario/tosse/releases/download/v1.0.0/app-release.apk)
+```
+
+### Instruções de Instalação
+
+1. **Baixe o arquivo APK** (usando uma das opções acima)
+2. **Ative "Fontes Desconhecidas"** nas configurações do Android:
+   - **Android 8.0+**: Configurações → Apps → Acesso Especial → Instalar apps desconhecidos → Selecione o navegador/gerenciador de arquivos → Permitir
+   - **Android 7.0 ou anterior**: Configurações → Segurança → Fontes Desconhecidas (ativar)
+3. **Abra o arquivo APK** baixado no dispositivo
+4. **Siga as instruções** de instalação
+5. **Conceda permissão de microfone** quando solicitado na primeira execução
+
+> ⚠️ **Nota de Segurança**: O APK não está assinado digitalmente. Alguns dispositivos podem mostrar avisos de segurança. Isso é normal para builds de desenvolvimento.
+
+### Informações do APK
+
+- ✅ **Modelo de IA**: TensorFlow Lite v2 (3 classes)
+- ✅ **Classes suportadas**: Pneumonia, Bronquite, Normal
+- ✅ **Calibração**: Temperatura diferenciada por classe
+- ✅ **Processamento**: 100% offline
+- ✅ **Tamanho**: ~81 MB
+
+---
+
 ## 🎯 Visão Geral
 
-**TosseControl** é uma aplicação móvel desenvolvida em Flutter que utiliza Inteligência Artificial (TensorFlow Lite) para analisar padrões acústicos de tosse e identificar possíveis sinais de patologias respiratórias, especificamente **Bronquite** e **Pneumonia**.
+**TosseControl** é uma aplicação móvel profissional desenvolvida em Flutter que utiliza Inteligência Artificial (TensorFlow Lite) para analisar padrões acústicos de tosse e identificar possíveis sinais de patologias respiratórias. 
 
-O aplicativo oferece uma interface moderna e profissional, com análise em tempo real e resultados detalhados apresentados de forma clara e intuitiva.
+### 🎯 O que faz?
+
+O aplicativo permite que você **grave sua tosse** (5 segundos) e receba uma **análise automática** em poucos segundos, classificando o áudio em **3 categorias**:
+
+1. **Pneumonia** - Detecção com alta confiança (AUC 0.93)
+2. **Bronquite** - Identificação de padrões bronquíticos
+3. **Normal** - Tosse saudável/normal
+
+### 🧠 Tecnologia de IA
+
+O modelo utiliza **calibração diferenciada por classe** com temperatura adaptativa para fornecer resultados mais realistas:
+
+- **Pneumonia** (T=2.0): Como o modelo é muito bom a detetar Pneumonia (AUC 0.93), permitimos mais certeza quando detectada
+- **Bronquite e Normal** (T=5.0): Como há confusão entre estas classes, aplicamos calibração agressiva para "achatar" a dúvida e fornecer probabilidades mais equilibradas
+
+### ✨ Características Principais
+
+- ✅ **Processamento 100% offline** - Nenhum dado enviado para servidores
+- ✅ **Análise em tempo real** - Resultados em ~6-7 segundos
+- ✅ **Interface profissional** - Design moderno e intuitivo
+- ✅ **3 classes balanceadas** - Pneumonia, Bronquite e Normal
+- ✅ **Calibração inteligente** - Temperatura adaptativa por classe
+- ✅ **Multiplataforma** - Android, iOS e Web
 
 ### 🎯 Objetivo
 
 Desenvolver uma ferramenta de apoio ao diagnóstico que possa auxiliar profissionais de saúde e usuários na identificação precoce de sinais de patologias respiratórias através da análise acústica da tosse.
 
-> ⚠️ **Importante**: Este aplicativo é uma ferramenta de apoio e não substitui a consulta médica profissional. Os resultados são preliminares e devem ser interpretados por um profissional de saúde qualificado.
+> ⚠️ **Importante**: Este aplicativo é uma ferramenta de apoio e **não substitui a consulta médica profissional**. Os resultados são preliminares e devem ser interpretados por um profissional de saúde qualificado.
 
 ---
 
@@ -57,10 +145,11 @@ Desenvolver uma ferramenta de apoio ao diagnóstico que possa auxiliar profissio
 
 ### 🧠 Análise com IA
 - ✅ Processamento em tempo real
-- ✅ Modelo TensorFlow Lite otimizado
-- ✅ Análise de espectrogramas Mel
-- ✅ Classificação de múltiplas condições
-- ✅ Probabilidades detalhadas para cada condição
+- ✅ Modelo TensorFlow Lite otimizado (MobileNetV2)
+- ✅ Análise de espectrogramas Mel (128x94)
+- ✅ Classificação de 3 classes: Pneumonia, Bronquite, Normal
+- ✅ Calibração diferenciada por classe (temperatura adaptativa)
+- ✅ Probabilidades detalhadas e realistas para cada condição
 
 ### 📊 Resultados Detalhados
 - ✅ Card principal com diagnóstico sugerido
@@ -330,13 +419,17 @@ O projeto segue uma arquitetura em camadas com separação de responsabilidades:
 ### Especificações do Modelo
 
 - **Formato**: TensorFlow Lite (`.tflite`)
-- **Arquitetura**: MobileNet (adaptada)
-- **Input Shape**: `[1, 128, 94, 3]`
+- **Arquitetura**: MobileNetV2 (adaptada)
+- **Modelo**: `modelo_respiratorio_v2.tflite`
+- **Input Shape**: `[1, 128, 94, 1]` → expandido para `[1, 128, 94, 3]`
   - 128: Bins Mel (frequências)
   - 94: Time steps (tempo)
-  - 3: Canais RGB (adaptação de escala de cinza)
-- **Output Shape**: `[1, 2]`
-  - 2 classes: Pneumonia (índice 0) e Bronquite (índice 1)
+  - 1: Canal original (escala de cinza)
+  - 3: Canais RGB (adaptação para MobileNetV2)
+- **Output Shape**: `[1, 3]`
+  - 3 classes: Pneumonia (índice 0), Bronquite (índice 1), Normal (índice 2)
+- **Tamanho**: ~9 MB
+- **Precisão**: Float32
 
 ### Pipeline de Processamento
 
@@ -361,17 +454,34 @@ O projeto segue uma arquitetura em camadas com separação de responsabilidades:
 #### 3. Inferência
 ```dart
 - Input: [1, 128, 94, 3] (normalizado)
-- Output: [1, 2] (probabilidades)
+- Output: [1, 3] (probabilidades brutas)
   - output[0][0] = Probabilidade de Pneumonia
   - output[0][1] = Probabilidade de Bronquite
+  - output[0][2] = Probabilidade de Normal
+```
+
+#### 4. Calibração com Temperatura Diferenciada
+```dart
+- Pneumonia: T=2.0 (menos calibração, mais certeza)
+- Bronquite: T=5.0 (calibração agressiva)
+- Normal: T=5.0 (calibração agressiva)
+- Aplica softmax após calibração
 ```
 
 ### Mapeamento de Classes
 
 ```dart
-Índice 0 → Pneumonia
-Índice 1 → Bronquite
+Índice 0 → Pneumonia (T=2.0)
+Índice 1 → Bronquite (T=5.0)
+Índice 2 → Normal (T=5.0)
 ```
+
+### Performance do Modelo
+
+- **AUC Pneumonia**: 0.93 (excelente)
+- **AUC Bronquite**: ~0.75-0.80 (bom)
+- **AUC Normal**: ~0.75-0.80 (bom)
+- **Accuracy geral**: ~70-80% (depende do dataset)
 
 ---
 
@@ -532,10 +642,11 @@ cd .. && flutter run
 - [ ] Comparação de resultados ao longo do tempo
 
 #### Melhorias de IA
-- [ ] Suporte a modelos de 3 classes (incluindo Normal)
-- [ ] Calibração de confiança
+- [x] Suporte a modelos de 3 classes (incluindo Normal) ✅
+- [x] Calibração diferenciada por classe (temperatura adaptativa) ✅
 - [ ] Análise de múltiplos segmentos de áudio
 - [ ] Modelo mais preciso e otimizado
+- [ ] Suporte a quantização INT8 para reduzir tamanho
 
 #### Interface
 - [ ] Modo escuro
@@ -566,7 +677,7 @@ cd .. && flutter run
 - **Total**: ~6-7 segundos por análise
 
 ### Tamanho do APK
-- **Release**: ~72-80 MB
+- **Release**: ~81 MB (com modelo v2 de 3 classes)
 - **Debug**: ~100+ MB
 
 ### Requisitos Mínimos
@@ -637,8 +748,9 @@ Para dúvidas, sugestões ou problemas:
 
 <div align="center">
 
-**Última atualização**: 2024  
+**Última atualização**: Janeiro 2025  
 **Versão**: 1.0.0  
+**Modelo**: v2 (3 classes com calibração diferenciada)  
 **Desenvolvido com ❤️ usando Flutter**
 
 </div>

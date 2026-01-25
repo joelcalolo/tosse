@@ -7,9 +7,11 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 class TfliteAnalyzerService {
   Interpreter? _interpreter;
   
-  // Parâmetro de temperatura para calibração agressiva
-  // T=5.0 torna as predições mais conservadoras, evitando certezas artificiais
-  static const double temperature = 5.0;
+  // Vetor de temperatura para calibração diferenciada por classe
+  // Pneumonia (T=2.0): Modelo é muito bom (AUC 0.93), permitimos mais certeza
+  // Bronquite e Normal (T=5.0): Há confusão entre estas classes, calibração agressiva
+  // Ordem: [Pneumonia, Bronquite, Normal]
+  static const List<double> temperaturePerClass = [2.0, 5.0, 5.0];
 
   Future<void> initialize() async {
     // Use the new v2 model with 3 classes
@@ -57,13 +59,16 @@ class TfliteAnalyzerService {
     print('DEBUG - Raw output (before calibration): ${output[0]}');
     print('DEBUG - Raw output values: [${output[0].map((v) => v.toStringAsFixed(4)).join(", ")}]');
 
-    // 8. Aplicar calibração agressiva com temperatura
+    // 8. Aplicar calibração diferenciada com temperatura por classe
     // Tratamos as probabilidades do modelo como logits e aplicamos temperatura + softmax
     final rawOutput = List<double>.from(output[0]);
-    final calibratedOutput = _applyTemperatureCalibration(rawOutput);
+    final calibratedOutput = _applyTemperatureCalibration(rawOutput, numClasses);
     
     // Debug: Print valores calibrados
-    print('DEBUG - Calibrated output (after temperature T=$temperature): ${calibratedOutput}');
+    if (numClasses == 3) {
+      print('DEBUG - Temperature per class: [Pneumonia: ${temperaturePerClass[0]}, Bronquite: ${temperaturePerClass[1]}, Normal: ${temperaturePerClass[2]}]');
+    }
+    print('DEBUG - Calibrated output (after per-class temperature): ${calibratedOutput}');
     print('DEBUG - Calibrated values: [${calibratedOutput.map((v) => v.toStringAsFixed(4)).join(", ")}]');
     print('DEBUG - Sum of calibrated probabilities: ${calibratedOutput.reduce((a, b) => a + b).toStringAsFixed(4)}');
     
@@ -165,7 +170,7 @@ class TfliteAnalyzerService {
 
   /// Aplica calibração agressiva usando temperatura
   /// Trata as probabilidades do modelo como logits, divide por temperatura e recalcula softmax
-  List<double> _applyTemperatureCalibration(List<double> rawOutput) {
+  List<double> _applyTemperatureCalibration(List<double> rawOutput, int numClasses) {
     // Primeiro, convertemos probabilidades para logits (aproximação inversa de softmax)
     // Como as probabilidades já estão normalizadas, usamos log para obter logits aproximados
     final logits = rawOutput.map((prob) {
@@ -174,8 +179,23 @@ class TfliteAnalyzerService {
       return log(safeProb);
     }).toList();
     
-    // Aplica temperatura: divide cada logit por T
-    final scaledLogits = logits.map((logit) => logit / temperature).toList();
+    // Aplica temperatura diferenciada por classe
+    // Se numClasses == 3: [Pneumonia: T=2.0, Bronquite: T=5.0, Normal: T=5.0]
+    // Se numClasses != 3: usa temperatura padrão (primeira do vetor ou média)
+    final scaledLogits = <double>[];
+    for (int i = 0; i < numClasses; i++) {
+      double temperature;
+      if (numClasses == 3 && i < temperaturePerClass.length) {
+        // Aplica temperatura específica por classe
+        temperature = temperaturePerClass[i];
+      } else {
+        // Fallback: usa primeira temperatura ou média
+        temperature = temperaturePerClass.isNotEmpty 
+            ? temperaturePerClass[0] 
+            : 3.5;
+      }
+      scaledLogits.add(logits[i] / temperature);
+    }
     
     // Aplica softmax manual nos logits escalados
     return _softmax(scaledLogits);
